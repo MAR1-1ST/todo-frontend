@@ -21,37 +21,35 @@ export const TaskProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
+// --- fetchTasks Debugged ---
 const fetchTasks = useCallback(async (filters = {}) => {
   if (!user) return;
-  
   setLoading(true);
-  setError(null);
-  
   try {
     const params = new URLSearchParams();
     Object.keys(filters).forEach(key => {
-      // FIX: Only add filters that are NOT null, NOT the string "null", and NOT empty 
-      const value = filters[key];
-      if (value && value !== 'null' && value !== '') {
-        params.append(key, value);
+      const val = filters[key];
+      // Only append if it's a real value (not "null", not empty)
+      if (val && val !== 'null' && val !== '' && val !== 'undefined') {
+        params.append(key, val);
       }
     });
-    
     const response = await axios.get(`${API_URL}/api/tasks?${params.toString()}`);
-    setTasks(response.data.tasks);
+    setTasks(response.data.tasks); // Successfully updates the list [cite: 156]
+    setError(null);
   } catch (error) {
-    console.error('Error fetching tasks:', error);
+    console.error('Fetch Error:', error);
     setError('Failed to fetch tasks');
-    toast.error('Failed to fetch tasks');
   } finally {
     setLoading(false);
   }
 }, [user]);
 
+// --- createTask Debugged ---
 const createTask = useCallback(async (taskData) => {
   try {
-    // FIX: If projectId is empty or "null", remove it so the backend sees it as missing 
     const cleanedData = { ...taskData };
+    // If projectId is not a real ID, remove it so the backend doesn't see it
     if (!cleanedData.projectId || cleanedData.projectId === 'null') {
       delete cleanedData.projectId;
     }
@@ -59,16 +57,16 @@ const createTask = useCallback(async (taskData) => {
     const response = await axios.post(`${API_URL}/api/tasks`, cleanedData);
     const newTask = response.data.task;
     
+    // Update state immediately so the new task appears without a re-fetch [cite: 156]
     setTasks(prev => [newTask, ...prev]);
     toast.success('Task created successfully');
     return { success: true, task: newTask };
   } catch (error) {
-      console.error('Error creating task:', error);
-      toast.error(error.response?.data?.message || 'Failed to create task');
-      return { success: false, error: error.response?.data?.message };
-    }
-  }, []);
-
+    const msg = error.response?.data?.errors?.[0]?.msg || 'Failed to create task';
+    toast.error(msg);
+    return { success: false };
+  }
+}, []);
   const updateTask = useCallback(async (taskId, updates) => {
     try {
       const response = await axios.put(`${API_URL}/api/tasks/${taskId}`, updates);
