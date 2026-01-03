@@ -21,38 +21,48 @@ export const TaskProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  const fetchTasks = useCallback(async (filters = {}) => {
-    if (!user) return;
+const fetchTasks = useCallback(async (filters = {}) => {
+  if (!user) return;
+  
+  setLoading(true);
+  setError(null);
+  
+  try {
+    const params = new URLSearchParams();
+    Object.keys(filters).forEach(key => {
+      // FIX: Only add filters that are NOT null, NOT the string "null", and NOT empty 
+      const value = filters[key];
+      if (value && value !== 'null' && value !== '') {
+        params.append(key, value);
+      }
+    });
     
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const params = new URLSearchParams();
-      Object.keys(filters).forEach(key => {
-        if (filters[key]) params.append(key, filters[key]);
-      });
-      
-      const response = await axios.get(`${API_URL}/api/tasks?${params}`);
-      setTasks(response.data.tasks);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      setError('Failed to fetch tasks');
-      toast.error('Failed to fetch tasks');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+    const response = await axios.get(`${API_URL}/api/tasks?${params.toString()}`);
+    setTasks(response.data.tasks);
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    setError('Failed to fetch tasks');
+    toast.error('Failed to fetch tasks');
+  } finally {
+    setLoading(false);
+  }
+}, [user]);
 
-  const createTask = useCallback(async (taskData) => {
-    try {
-      const response = await axios.post(`${API_URL}/api/tasks`, taskData);
-      const newTask = response.data.task;
-      
-      setTasks(prev => [newTask, ...prev]);
-      toast.success('Task created successfully');
-      return { success: true, task: newTask };
-    } catch (error) {
+const createTask = useCallback(async (taskData) => {
+  try {
+    // FIX: If projectId is empty or "null", remove it so the backend sees it as missing 
+    const cleanedData = { ...taskData };
+    if (!cleanedData.projectId || cleanedData.projectId === 'null') {
+      delete cleanedData.projectId;
+    }
+
+    const response = await axios.post(`${API_URL}/api/tasks`, cleanedData);
+    const newTask = response.data.task;
+    
+    setTasks(prev => [newTask, ...prev]);
+    toast.success('Task created successfully');
+    return { success: true, task: newTask };
+  } catch (error) {
       console.error('Error creating task:', error);
       toast.error(error.response?.data?.message || 'Failed to create task');
       return { success: false, error: error.response?.data?.message };
