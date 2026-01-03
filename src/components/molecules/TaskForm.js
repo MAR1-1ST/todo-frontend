@@ -48,15 +48,15 @@ const TaskForm = ({
     }
   }, [initialData, reset]);
 
-const handleFormSubmit = (data) => {
-  const formattedData = {
-    ...data,
-    dueDate: data.dueDate || null,
-    // DEBUG: Change 'null' to 'undefined' so axios omits the key
-    projectId: data.projectId || undefined 
+  const handleFormSubmit = (data) => {
+    const formattedData = {
+      ...data,
+      dueDate: data.dueDate || null,
+      projectId: data.projectId && data.projectId !== '' ? data.projectId : null
+    };
+    onSubmit(formattedData);
   };
-  onSubmit(formattedData);
-};
+
   const priorityOptions = [
     { value: 'LOW', label: 'Low Priority' },
     { value: 'MEDIUM', label: 'Medium Priority' },
