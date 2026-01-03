@@ -1,5 +1,4 @@
-import { CheckCircle } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
@@ -14,10 +13,12 @@ import Button from '../components/atoms/Button';
 import { useTasks } from '../contexts/TaskContext';
 import { useProjects } from '../contexts/ProjectContext';
 import TaskItem from '../components/molecules/TaskItem';
+import TaskForm from '../components/molecules/TaskForm';
 
 const Dashboard = () => {
-  const { tasks, getTaskStats, fetchTasks } = useTasks();
+  const { tasks, getTaskStats, fetchTasks, createTask } = useTasks();
   const { projects, fetchProjects } = useProjects();
+  const [showTaskForm, setShowTaskForm] = useState(false);
   
   const stats = getTaskStats();
   
@@ -56,6 +57,14 @@ const Dashboard = () => {
     fetchProjects();
   }, [fetchTasks, fetchProjects]);
 
+  const handleCreateTask = async (taskData) => {
+    const result = await createTask(taskData);
+    if (result.success) {
+      setShowTaskForm(false);
+    }
+    return result;
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -64,11 +73,12 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your tasks.</p>
         </div>
-        <Link to="/tasks">
-          <Button icon={<Plus className="w-4 h-4" />}>
-            New Task
-          </Button>
-        </Link>
+        <Button 
+          onClick={() => setShowTaskForm(true)}
+          icon={<Plus className="w-4 h-4" />}
+        >
+          New Task
+        </Button>
       </div>
 
       {/* Stats Grid */}
@@ -222,6 +232,15 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Task Form Modal */}
+      {showTaskForm && (
+        <TaskForm
+          onSubmit={handleCreateTask}
+          onCancel={() => setShowTaskForm(false)}
+          projects={projects}
+        />
+      )}
     </div>
   );
 };
