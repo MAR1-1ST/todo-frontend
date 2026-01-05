@@ -7,7 +7,8 @@ import {
   Clock, 
   AlertCircle,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  CheckCircle // <--- ADD THIS IMPORT
 } from 'lucide-react';
 import Button from '../components/atoms/Button';
 import { useTasks } from '../contexts/TaskContext';
@@ -73,6 +74,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your tasks.</p>
         </div>
+        {/* Make sure this button isn't wrapped in a Link in the Button component */}
         <Button 
           onClick={() => setShowTaskForm(true)}
           icon={<Plus className="w-4 h-4" />}
@@ -163,7 +165,6 @@ const Dashboard = () => {
 
       {/* Quick Actions and Recent Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Today's Tasks */}
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Due Today</h2>
@@ -185,7 +186,6 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Overdue Tasks */}
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Overdue</h2>
@@ -220,6 +220,8 @@ const Dashboard = () => {
           <div className="text-center py-8 text-gray-500">
             <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p>No recent tasks</p>
+            {/* Note: This specific link below goes to /tasks. 
+                If you click this, it will navigate away! */}
             <Link to="/tasks" className="text-primary-600 hover:text-primary-500 mt-2 inline-block">
               Create your first task
             </Link>
